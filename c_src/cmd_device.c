@@ -52,6 +52,7 @@ static void device_add_usage(void)
 	     "  -B, --bucket=size           Bucket size\n"
 	     "  -D, --discard               Enable discards\n"
 	     "  -l, --label=label           Disk label\n"
+	     "  -d, --durability=value      Set durability level\n"
 	     "  -f, --force                 Use device even if it appears to already be formatted\n"
 	     "  -h, --help                  Display this help and exit\n"
 	     "\n"
@@ -65,6 +66,7 @@ int cmd_device_add(int argc, char *argv[])
 		{ "bucket",		required_argument,	NULL, 'B' },
 		{ "discard",		no_argument,		NULL, 'D' },
 		{ "label",		required_argument,	NULL, 'l' },
+		{ "durability",		required_argument,	NULL, 'd' },
 		{ "force",		no_argument,		NULL, 'f' },
 		{ "help",		no_argument,		NULL, 'h' },
 		{ NULL }
@@ -74,7 +76,7 @@ int cmd_device_add(int argc, char *argv[])
 	bool force = false;
 	int opt;
 
-	while ((opt = getopt_long(argc, argv, "S:B:Dl:fh",
+	while ((opt = getopt_long(argc, argv, "S:B:Dl:d:f:h",
 				  longopts, NULL)) != -1)
 		switch (opt) {
 		case 'S':
@@ -87,6 +89,11 @@ int cmd_device_add(int argc, char *argv[])
 			break;
 		case 'D':
 			dev_opts.discard = true;
+			break;
+		case 'd':
+			if (kstrtouint(optarg, 10, &dev_opts.durability) ||
+				dev_opts.durability > BCH_REPLICAS_MAX)
+				die("invalid durability");
 			break;
 		case 'l':
 			dev_opts.label = strdup(optarg);
